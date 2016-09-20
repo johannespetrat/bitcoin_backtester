@@ -2,9 +2,13 @@
 
 One day this will become a testing platform for trading strategies for a variety of cryptocurrencies (Bitcoin, Ether, etc.). 
 
+## Project TODOs
+1. add portfolio that automatically updates market value of positions
+2. add possibility to trade on several exchanges
+3. interfaces with APIs of common exchanges
+
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisities
 

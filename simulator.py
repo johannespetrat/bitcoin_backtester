@@ -15,7 +15,7 @@ class Simulator(object):
 				for order in orders:
 					executed = self.broker.execute_order(order)				
 					executed_orders.append(executed)
-				self.portfolio.update(executed_orders)
+			self.portfolio.update(executed_orders)
 		return executed_orders
 
 

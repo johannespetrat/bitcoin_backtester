@@ -8,6 +8,7 @@ from broker import BacktestingBroker
 from nose.tools import set_trace
 from simulator import Simulator,Order
 from portfolio import Portfolio as TestPortfolio
+from position import Position
 
 if __name__=="__main__":
     global_event_queue = Queue.Queue()
@@ -17,8 +18,9 @@ if __name__=="__main__":
     					side='B',posted_at=datetime.datetime.now())
     fill_event = broker.execute_order(testOrder)
     strategy = TestStrategy(global_event_queue)
-    portfolio = TestPortfolio(1,2)
+    portfolio = TestPortfolio(broker,100)
     simulator = Simulator(dataStream,broker,strategy,portfolio)
+
     simulator.run()
     while global_event_queue.qsize()>0:
     	try:

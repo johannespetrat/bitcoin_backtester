@@ -41,3 +41,12 @@ class BacktestingBroker(BasicBroker):
 
     def _limit_order(self,order):
         pass
+
+    def get_best_bid_ask(self,ticker,exchange):
+        pass
+
+    def get_last_close(self,ticker,exchange):
+        return self.dataStream.get_latest_bars(N=1)['Close'].values[0]
+
+    def istick(self):
+        return False

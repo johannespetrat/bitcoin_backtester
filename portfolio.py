@@ -1,4 +1,5 @@
 from position import Position
+from nose.tools import set_trace
 
 class Portfolio(object):
     def __init__(self, price_handler, cash):
@@ -26,13 +27,13 @@ class Portfolio(object):
         self.unrealised_pnl = 0
         self.equity = self.realised_pnl
         self.equity += self.init_cash
-
+        exchange = "TestExchange"
         for ticker in self.positions:
             pt = self.positions[ticker]
             if self.price_handler.istick():
-                bid, ask = self.price_handler.get_best_bid_ask(ticker)
+                bid, ask = self.price_handler.get_best_bid_ask(ticker,exchange)
             else:
-                close_price = self.price_handler.get_last_close(ticker)
+                close_price = self.price_handler.get_last_close(ticker,exchange)
                 bid = close_price
                 ask = close_price
             pt.update_market_value(bid, ask)
@@ -42,10 +43,7 @@ class Portfolio(object):
                 pt.market_value - pt.cost_basis + pnl_diff
             )
 
-    def _add_position(
-        self, action, ticker,
-        quantity, price, commission
-    ):
+    def _add_position(self, fill_event):
         """
         Adds a new Position object to the Portfolio. This
         requires getting the best bid/ask price from the
@@ -54,18 +52,18 @@ class Portfolio(object):
         Once the Position is added, the Portfolio values
         are updated.
         """
-        if ticker not in self.positions:
+        if fill_event.symbol not in self.positions:
             if self.price_handler.istick():
-                bid, ask = self.price_handler.get_best_bid_ask(ticker)
+                bid, ask = self.price_handler.get_best_bid_ask(fill_event.symbol,fill_event.exchange)
             else:
-                close_price = self.price_handler.get_last_close(ticker)
+                close_price = self.price_handler.get_last_close(fill_event.symbol,fill_event.exchange)
                 bid = close_price
                 ask = close_price
-            position = Position(
-                action, ticker, quantity,
-                price, commission, bid, ask
-            )
-            self.positions[ticker] = position
+            position = Position(symbol=fill_event.symbol, side=fill_event.side,
+                                init_volume=fill_event.volume, exchange=fill_event.exchange,
+                                init_price=fill_event.price, init_commission=fill_event.commission,
+                                bid=bid, ask=ask)
+            self.positions[fill_event.symbol] = position
             self._update_portfolio()
         else:
             print(
@@ -73,10 +71,7 @@ class Portfolio(object):
                 "Could not add a new position." % ticker
             )
 
-    def _modify_position(
-        self, action, ticker,
-        quantity, price, commission
-    ):
+    def _modify_position(self, fill_event):
         """
         Modifies a current Position object to the Portfolio.
         This requires getting the best bid/ask price from the
@@ -85,20 +80,19 @@ class Portfolio(object):
         Once the Position is modified, the Portfolio values
         are updated.
         """
-        if ticker in self.positions:
-            self.positions[ticker].transact_shares(
-                action, quantity, price, commission
-            )
+        exchange = 'TestExchange'
+        if fill_event.symbol in self.positions:
+            self.positions[fill_event.symbol].transact_shares(fill_event)
             if self.price_handler.istick():
-                bid, ask = self.price_handler.get_best_bid_ask(ticker)
+                bid, ask = self.price_handler.get_best_bid_ask(fill_event.symbol,exchange)
             else:
-                close_price = self.price_handler.get_last_close(ticker)
+                close_price = self.price_handler.get_last_close(fill_event.symbol,exchange)
                 bid = close_price
                 ask = close_price
-            self.positions[ticker].update_market_value(bid, ask)
+            self.positions[fill_event.symbol].update_market_value(bid, ask)
 
-            if self.positions[ticker].quantity == 0:
-                closed = self.positions.pop(ticker)
+            if self.positions[fill_event.symbol].volume == 0:
+                closed = self.positions.pop(fill_event.symbol)
                 self.realised_pnl += closed.realised_pnl
                 self.closed_positions.append(closed)
 
@@ -106,13 +100,12 @@ class Portfolio(object):
         else:
             print(
                 "Ticker %s not in the current position list. "
-                "Could not modify a current position." % ticker
+                "Could not modify a current position." % fill_event.symbol
             )
 
-    def transact_position(
-        self, action, ticker,
-        quantity, price, commission
-    ):
+    #def transact_position(self, action, ticker,
+    #                        volume, price, commission):
+    def transact_position(self, fill_event):
         """
         Handles any new position or modification to
         a current position, by calling the respective
@@ -121,24 +114,21 @@ class Portfolio(object):
         PortfolioHandler to update the Portfolio itself.
         """
 
-        if action == "BOT":
-            self.cur_cash -= ((quantity * price) + commission)
-        elif action == "SLD":
-            self.cur_cash += ((quantity * price) - commission)
+        if fill_event.side == "B":
+            self.cur_cash -= ((fill_event.volume * fill_event.price) + fill_event.commission)
+        elif fill_event.side == "S":
+            self.cur_cash += ((fill_event.volume * fill_event.price) - fill_event.commission)
 
-        if ticker not in self.positions:
-            self._add_position(
-                action, ticker, quantity,
-                price, commission
-            )
+        if fill_event.symbol not in self.positions:
+            self._add_position(fill_event)
         else:
-            self._modify_position(
-                action, ticker, quantity,
-                price, commission
-            )
+            self._modify_position(fill_event)
 
     def update(self, executed_order):
         """
         next thing to do
         """
-        pass
+        for order in executed_order:
+            self.transact_position(order)
+        if len(executed_order)>0:
+            set_trace()
