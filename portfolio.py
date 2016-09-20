@@ -1,11 +1,13 @@
 from position import Position
 from nose.tools import set_trace
 
+
 class Portfolio(object):
+
     def __init__(self, price_handler, cash):
         """
-        On creation, the Portfolio object contains no
-        positions and all values are "reset" to the initial
+        When initialised the Portfolio does not contain any
+        positions and all values are set to the initial
         cash, with no PnL - realised or unrealised.
         Note that realised_pnl is the running tally pnl from closed
         positions (closed_pnl), as well as realised_pnl
@@ -31,9 +33,11 @@ class Portfolio(object):
         for ticker in self.positions:
             pt = self.positions[ticker]
             if self.price_handler.istick():
-                bid, ask = self.price_handler.get_best_bid_ask(ticker,exchange)
+                bid, ask = self.price_handler.get_best_bid_ask(
+                    ticker, exchange)
             else:
-                close_price = self.price_handler.get_last_close(ticker,exchange)
+                close_price = self.price_handler.get_last_close(
+                    ticker, exchange)
                 bid = close_price
                 ask = close_price
             pt.update_market_value(bid, ask)
@@ -54,9 +58,11 @@ class Portfolio(object):
         """
         if fill_event.symbol not in self.positions:
             if self.price_handler.istick():
-                bid, ask = self.price_handler.get_best_bid_ask(fill_event.symbol,fill_event.exchange)
+                bid, ask = self.price_handler.get_best_bid_ask(
+                    fill_event.symbol, fill_event.exchange)
             else:
-                close_price = self.price_handler.get_last_close(fill_event.symbol,fill_event.exchange)
+                close_price = self.price_handler.get_last_close(
+                    fill_event.symbol, fill_event.exchange)
                 bid = close_price
                 ask = close_price
             position = Position(symbol=fill_event.symbol, side=fill_event.side,
@@ -84,9 +90,11 @@ class Portfolio(object):
         if fill_event.symbol in self.positions:
             self.positions[fill_event.symbol].transact_shares(fill_event)
             if self.price_handler.istick():
-                bid, ask = self.price_handler.get_best_bid_ask(fill_event.symbol,exchange)
+                bid, ask = self.price_handler.get_best_bid_ask(
+                    fill_event.symbol, exchange)
             else:
-                close_price = self.price_handler.get_last_close(fill_event.symbol,exchange)
+                close_price = self.price_handler.get_last_close(
+                    fill_event.symbol, exchange)
                 bid = close_price
                 ask = close_price
             self.positions[fill_event.symbol].update_market_value(bid, ask)
@@ -103,7 +111,7 @@ class Portfolio(object):
                 "Could not modify a current position." % fill_event.symbol
             )
 
-    #def transact_position(self, action, ticker,
+    # def transact_position(self, action, ticker,
     #                        volume, price, commission):
     def transact_position(self, fill_event):
         """
@@ -115,9 +123,11 @@ class Portfolio(object):
         """
 
         if fill_event.side == "B":
-            self.cur_cash -= ((fill_event.volume * fill_event.price) + fill_event.commission)
+            self.cur_cash -= ((fill_event.volume *
+                               fill_event.price) + fill_event.commission)
         elif fill_event.side == "S":
-            self.cur_cash += ((fill_event.volume * fill_event.price) - fill_event.commission)
+            self.cur_cash += ((fill_event.volume *
+                               fill_event.price) - fill_event.commission)
 
         if fill_event.symbol not in self.positions:
             self._add_position(fill_event)
@@ -130,5 +140,5 @@ class Portfolio(object):
         """
         for order in executed_order:
             self.transact_position(order)
-        if len(executed_order)>0:
+        if len(executed_order) > 0:
             set_trace()

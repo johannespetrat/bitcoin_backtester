@@ -8,6 +8,7 @@ from abc import ABCMeta, abstractmethod
 from event import SignalEvent
 from simulator import Order
 
+
 class Strategy(object):
     """
     Strategy is an abstract base class for
@@ -22,7 +23,7 @@ class Strategy(object):
     @abstractmethod
     def make_offers(self, bars):
         """
-        
+
         """
         raise NotImplementedError("Should implement execute_order")
 
@@ -40,8 +41,8 @@ class TestStrategy(Strategy):
         self.events = events
         self.order_id = 0
 
-    def make_offers(self,bars):
-        self.order_id+=1
-        if self.order_id<50:
-            return [Order(symbol='BTC',order_type='MKT',exchange='TestExchange',volume=10,
-                            side='B',posted_at=datetime.datetime.now())]
+    def make_offers(self, bars):
+        self.order_id += 1
+        if self.order_id < 50:
+            return [Order(symbol='BTC', order_type='MKT', exchange='TestExchange', volume=10,
+                          side='B', posted_at=datetime.datetime.now())]

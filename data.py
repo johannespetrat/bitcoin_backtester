@@ -1,10 +1,12 @@
 import datetime
-import os, os.path
+import os
+import os.path
 import pandas as pd
 
 from abc import ABCMeta, abstractmethod
 
 from event import MarketEvent
+
 
 class DataHandler(object):
     """
@@ -36,6 +38,7 @@ class DataHandler(object):
         for all symbols in the symbol list.
         """
         raise NotImplementedError("Should implement update_bars()")
+
 
 class BitcoinFromCSV(DataHandler):
     """
@@ -77,39 +80,38 @@ class BitcoinFromCSV(DataHandler):
 
         """
         symbol_data = pd.read_csv(self.csv_path)
-        symbol_data['Datetime'] = symbol_data['Timestamp'].apply(lambda x: pd.to_datetime(x))
+        symbol_data['Datetime'] = symbol_data[
+            'Timestamp'].apply(lambda x: pd.to_datetime(x))
         symbol_data = symbol_data.sort_values(by='Datetime')
         self.symbol_data = symbol_data
         #self.current_time = symbol_data['Datetime'].min()
-        self.latest_symbol_data = pd.DataFrame(dict([(c,{}) for c in self.symbol_data.columns]))
-        self.symbol_data['Weighted Price'] = pd.to_numeric(self.symbol_data['Weighted Price'],errors='coerce')
-
-
+        self.latest_symbol_data = pd.DataFrame(
+            dict([(c, {}) for c in self.symbol_data.columns]))
+        self.symbol_data['Weighted Price'] = pd.to_numeric(
+            self.symbol_data['Weighted Price'], errors='coerce')
 
     def _data_streamer(self):
         for row_idx in xrange(len(self.symbol_data)):
-            self.current_idx+=1
+            self.current_idx += 1
             yield self.symbol_data.iloc[row_idx]
-
 
     def _get_new_bar(self):
         """
         Returns the latest bar from the data feed as a tuple of
         (sybmbol, datetime, open, low, high, close, volume).
         """
-        #for row_idx in xrange(len(self.symbol_data)):
+        # for row_idx in xrange(len(self.symbol_data)):
         #    yield self.symbol_data.iloc[row_idx:(row_idx+1)]
-        #for row in self.symbol_data.iterrows():
-        yield self.symbol_data.iloc[self.length:(self.length+1)]
+        # for row in self.symbol_data.iterrows():
+        yield self.symbol_data.iloc[self.length:(self.length + 1)]
 
     def get_latest_bars(self, N=1):
         """
         Returns the last N bars from the latest_symbol list,
         or N-k if less available.
         """
-        return self.symbol_data.iloc[max([self.current_idx-N,0]):self.current_idx]
+        return self.symbol_data.iloc[max([self.current_idx - N, 0]):self.current_idx]
 
-    
     def update_bars(self):
         """
         Pushes the latest bar to the latest_symbol_data structure
@@ -121,6 +123,7 @@ class BitcoinFromCSV(DataHandler):
             self.continue_backtest = False
         else:
             if bar is not None:
-                self.latest_symbol_data = pd.concat([self.latest_symbol_data,bar])
+                self.latest_symbol_data = pd.concat(
+                    [self.latest_symbol_data, bar])
         self.length += 1
         self.events.put(MarketEvent())

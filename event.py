@@ -1,4 +1,4 @@
-#bitcoin trading backtesting code
+# bitcoin trading backtesting code
 class Event(object):
     """
     Event is base class providing an interface for all subsequent
@@ -22,6 +22,7 @@ class MarketEvent(Event):
         """
         self.type = 'MARKET'
 
+
 class SignalEvent(Event):
     """
     Handles the event of sending a Signal from a Strategy object.
@@ -44,6 +45,7 @@ class SignalEvent(Event):
         self.signal_type = signal_type
         if data is not None:
             self.data = data
+
 
 class OrderEvent(Event):
     """
@@ -89,7 +91,7 @@ class FillEvent(Event):
     """
 
     def __init__(self, timeindex, symbol, exchange, volume,
-                 side, fill_cost, price,commission=None):
+                 side, fill_cost, price, commission=None):
         """
         Initialises the FillEvent object. Sets the symbol, exchange,
         quantity, direction, cost of fill and an optional
@@ -120,24 +122,22 @@ class FillEvent(Event):
         self.price = price
 
     def __str__(self):
-        return "Filled Order for Symbol {}; {} {} at price {}".format(self.symbol,self.side,self.volume,self.price)
+        return "Filled Order for Symbol {}; {} {} at price {}".format(self.symbol, self.side, self.volume, self.price)
 
 
 class EventHandler(object):
+
     def __init__(self, event_queue):
         self.event_queue = event_queue
 
     def update(self, data_stream, signal_collection, strategy, broker, portfolio):
         if not self.event_queue.empty():
             event = event.get()
-        if event.type=='MARKET':
+        if event.type == 'MARKET':
             signals.update()
-        if event.type=="SIGNAL":
+        if event.type == "SIGNAL":
             strategy.update()
-        if event.type=="ORDER":
+        if event.type == "ORDER":
             broker.update()
-        if event.type=="FILL":
+        if event.type == "FILL":
             portfolio.update()
-
-
-
