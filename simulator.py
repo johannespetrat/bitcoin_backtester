@@ -1,16 +1,20 @@
+from nose.tools import set_trace
 
 class Simulator(object):
 
-    def __init__(self, dataStream, broker, strategy, portfolio):
+    def __init__(self, dataStream, broker, strategy, portfolio, signals):
         self.dataStream = dataStream
         self.broker = broker
         self.strategy = strategy
         self.portfolio = portfolio
+        self.signals = signals
 
     def run(self):
         executed_orders = []
-        for bar in self.dataStream._data_streamer():
-            orders = self.strategy.make_offers(bar)
+        for bar in self.dataStream._data_streamer():   
+            print bar['Datetime'] 
+            self.signals.update(bar)
+            orders = self.strategy.make_offers(bar, self.signals)
             executed_orders = []
             if orders:
                 for order in orders:

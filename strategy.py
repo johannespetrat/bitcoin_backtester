@@ -21,7 +21,7 @@ class Strategy(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def make_offers(self, bars):
+    def make_offers(self, bars, signals):
         """
 
         """
@@ -41,8 +41,10 @@ class TestStrategy(Strategy):
         self.events = events
         self.order_id = 0
 
-    def make_offers(self, bars):
+    def make_offers(self, bars, signals):
+        sign = signals.get_signals()
+
         self.order_id += 1
-        if self.order_id < 50:
+        if self.order_id < 50 and sign['Moving Average']>30:
             return [Order(symbol='BTC', order_type='MKT', exchange='TestExchange', volume=10,
                           side='B', posted_at=datetime.datetime.now())]

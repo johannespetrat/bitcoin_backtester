@@ -1,6 +1,4 @@
 from position import Position
-from nose.tools import set_trace
-
 
 class Portfolio(object):
 
@@ -140,5 +138,3 @@ class Portfolio(object):
         """
         for order in executed_order:
             self.transact_position(order)
-        if len(executed_order) > 0:
-            set_trace()

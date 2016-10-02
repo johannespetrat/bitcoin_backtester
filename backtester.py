@@ -9,6 +9,7 @@ from nose.tools import set_trace
 from simulator import Simulator, Order
 from portfolio import Portfolio as TestPortfolio
 from position import Position
+from signals import SignalCollector, MovingAverage
 
 if __name__ == "__main__":
     global_event_queue = Queue.Queue()
@@ -21,7 +22,8 @@ if __name__ == "__main__":
     fill_event = broker.execute_order(testOrder)
     strategy = TestStrategy(global_event_queue)
     portfolio = TestPortfolio(broker, 100)
-    simulator = Simulator(dataStream, broker, strategy, portfolio)
+    signals = SignalCollector({"Moving Average": MovingAverage(lookback_period = datetime.timedelta(hours=6))})
+    simulator = Simulator(dataStream, broker, strategy, portfolio, signals)
 
     simulator.run()
     while global_event_queue.qsize() > 0:
