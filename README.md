@@ -3,9 +3,8 @@
 One day this will become a testing platform for trading strategies for a variety of cryptocurrencies (Bitcoin, Ether, etc.). 
 
 ## Project TODOs
-1. add portfolio that automatically updates market value of positions
-2. add possibility to trade on several exchanges
-3. interfaces with APIs of common exchanges
+1. add possibility to trade on several exchanges
+2. interfaces with APIs of common exchanges
 
 ## Getting Started
 
