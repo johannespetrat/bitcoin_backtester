@@ -46,8 +46,12 @@ class TestStrategy(Strategy):
 
         self.order_id += 1
         if self.order_id < 50 and sign['Moving Average']>30:
-            return [Order(symbol='BTC', order_type='MKT', exchange='TestExchange', volume=10,
-                          side='B', posted_at=datetime.datetime.now())]
+            #return [Order(symbol='BTC', order_type='MKT', exchange='TestExchange', volume=10,
+            #              side='B', posted_at=datetime.datetime.now())]
+            return [Order(symbol='BTC', order_type='LMT', exchange='TestExchange', volume=10,
+                          side='B', posted_at=datetime.datetime.now(), price=30)]
         elif self.order_id > 50:
-            return [Order(symbol='BTC', order_type='MKT', exchange='TestExchange', volume=10,
-                          side='S', posted_at=datetime.datetime.now())]
+            #return [Order(symbol='BTC', order_type='MKT', exchange='TestExchange', volume=10,
+            #              side='S', posted_at=datetime.datetime.now())]
+            return [Order(symbol='BTC', order_type='LMT', exchange='TestExchange', volume=10,
+                          side='S', posted_at=datetime.datetime.now(), price=30)]

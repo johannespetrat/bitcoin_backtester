@@ -143,4 +143,5 @@ class Portfolio(object):
         next thing to do
         """
         for order in executed_order:
-            self.transact_position(order)
+            if order is not None:
+                self.transact_position(order)

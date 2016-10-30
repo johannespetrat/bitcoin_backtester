@@ -35,24 +35,24 @@ class BacktestingBroker(BasicBroker):
         self.event_queue = event_queue
         self.commission = commission
 
-    def execute_order(self, order):
-        market_price = self.get_market_price(order.exchange, order.side)
+    def execute_order(self, order):        
         if order.order_type == 'MKT':
-            return self._market_order(order, market_price)
+            return self._market_order(order)
         elif order.order_type == 'LMT':
-            return self._limit_order(order, market_price)
+            return self._limit_order(order)
 
     def get_market_price(self, exchange, side):
         data = self.dataStream.get_latest_bars(N=10)
         if side=='B':
             return data['Ask'].values[-1]
         else:
-            return data[['Bid','Ask']].values[-1]
+            return data[['Bid']].values[-1]
 
-    def _market_order(self, order, market_price):
+    def _market_order(self, order):
         """
         executes a market order
         """
+        market_price = self.get_market_price(order.exchange, order.side)
         volume = order.volume
         fill_cost = volume * market_price
         fill_event = FillEvent(timeindex=datetime.now(), symbol='BTC', exchange='TestExchange',
@@ -65,7 +65,22 @@ class BacktestingBroker(BasicBroker):
         """
         executes a limit order
         """
-        pass
+        volume = order.volume        
+        market_price = self.get_market_price(order.exchange, order.side)
+        fill_cost = volume * market_price
+        if order.side=='B' and order.price>=market_price:
+            fill_event = FillEvent(timeindex=datetime.now(), symbol='BTC', exchange='TestExchange',
+                                   volume=volume, side=order.side, fill_cost=fill_cost,
+                                   commission=volume * self.commission, price=min([order.price,market_price]))        
+            self.event_queue.put(fill_event)
+            return fill_event
+        elif order.side=='S' and order.price<=market_price:
+            fill_event = FillEvent(timeindex=datetime.now(), symbol='BTC', exchange='TestExchange',
+                                   volume=volume, side=order.side, fill_cost=fill_cost,
+                                   commission=volume * self.commission, price=max([order.price,market_price]))        
+            self.event_queue.put(fill_event)
+            return fill_event
+
 
     def istick(self):
         return True
@@ -90,7 +105,7 @@ class CoinbaseSandboxBroker(BasicBroker):
     def _market_order(self, order, market_price):
         volume = order.volume
         fill_cost = volume * market_price
-        fill_event = FillEvent(timeindex=datetime.now(), symbol='BTC', exchange='TestExchange',
+        fill_event = FillEvent(timeindex=datetime.now(), symbol='BTC', exchange='Coinbase',
                                volume=volume, side=order.side, fill_cost=fill_cost,
                                commission=volume * self.commission, price=market_price)
         self.event_queue.put(fill_event)

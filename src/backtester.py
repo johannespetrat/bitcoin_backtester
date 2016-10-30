@@ -22,12 +22,13 @@ if __name__ == "__main__":
     account_id = coinbase_client.get_accounts()['data'][0]['id']
     dataStream = CoinbaseSandboxStream(global_event_queue, update_rate = 1, client = coinbase_client)
 
-    broker = CoinbaseSandboxBroker(dataStream, global_event_queue, commission=0.01, account_id)
+    broker = CoinbaseSandboxBroker(dataStream, global_event_queue, commission=0.01, account_id=account_id)
     a = coinbase_client.buy(account_id, amount='1', currency='BTC')
 
     #for i in d._data_streamer():
     #    print i
     """
+    
     dataStream = BitcoinFromCSV(
                             events=global_event_queue, 
                             csv_path='../data/bitcoin_6_months_hourly.csv',
@@ -45,7 +46,8 @@ if __name__ == "__main__":
     simulator.run()
     while global_event_queue.qsize() > 0:
         try:
-            print global_event_queue.get().price
+            event = global_event_queue.get()
+            print type(event), event.price, event.side
         except AttributeError:
             pass
     set_trace()
