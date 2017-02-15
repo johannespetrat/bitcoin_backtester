@@ -65,13 +65,13 @@ class MovingAverage(SignalGenerator):
         self.data = self.data.append(pd.DataFrame({"Datetime":[bar['Datetime']],"Price":[market_price]}))        
         lookback_datetime = bar['Datetime'].replace(minute=0,second=0) - self.lookback_period
         self.data = self.data[self.data['Datetime']>=lookback_datetime]
-        #from nose.tools import set_trace; set_trace()
+        #from nose.tools import set_trace; set_trace()        
         if len(self.data) < self.lookback_period.seconds/3600.:
             warnings.warn("not enough data points available")
-            self.ma = self.data.groupby('Datetime').min()['Price'] + self.data.groupby('Datetime').max()['Price']
+            self.ma = self.data.groupby('Datetime').mean()['Price'][0]
             #return SignalEvent(symbol='BTC', datetime=datetime.now(), signal_type='Moving Average')
         else:
-            self.ma = self.data.groupby('Datetime').min()['Price'] + self.data.groupby('Datetime').max()['Price']
+            self.ma = None
     
     def get_values(self):
-        return {"Moving Average": self.ma.values[0]}
+        return {"Moving Average": self.ma}

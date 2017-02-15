@@ -43,15 +43,15 @@ class TestStrategy(Strategy):
 
     def make_offers(self, bars, signals):
         sign = signals.get_signals()
-
         self.order_id += 1
-        if self.order_id < 50 and sign['Moving Average']>30:
-            #return [Order(symbol='BTC', order_type='MKT', exchange='TestExchange', volume=10,
-            #              side='B', posted_at=datetime.datetime.now())]
-            return [Order(symbol='BTC', order_type='LMT', exchange='TestExchange', volume=10,
-                          side='B', posted_at=datetime.datetime.now(), price=30)]
-        elif self.order_id > 50:
-            #return [Order(symbol='BTC', order_type='MKT', exchange='TestExchange', volume=10,
-            #              side='S', posted_at=datetime.datetime.now())]
-            return [Order(symbol='BTC', order_type='LMT', exchange='TestExchange', volume=10,
-                          side='S', posted_at=datetime.datetime.now(), price=30)]
+        #from nose.tools import set_trace; set_trace()
+        if bars['Ask']<sign['Moving Average']:
+            return [Order(symbol='BTC', order_type='MKT', exchange='TestExchange', volume=10,
+                          side='B', posted_at=bars['Datetime'])]
+            #return [Order(symbol='BTC', order_type='LMT', exchange='TestExchange', volume=10,
+            #              side='B', posted_at=bars['Datetime'] , price=30)]
+        elif bars['Bid']>sign['Moving Average']:
+            return [Order(symbol='BTC', order_type='MKT', exchange='TestExchange', volume=10,
+                          side='S', posted_at=bars['Datetime']) ]
+            #return [Order(symbol='BTC', order_type='LMT', exchange='TestExchange', volume=10,
+            #              side='S', posted_at=bars['Datetime'], price=30)]

@@ -18,6 +18,7 @@ class Portfolio(object):
         self.positions = {}
         self.closed_positions = []
         self.realised_pnl = 0
+        self.unrealised_pnl = 0
 
     def _update_portfolio(self):
         """
@@ -91,24 +92,27 @@ class Portfolio(object):
         exchange = 'TestExchange'
         if fill_event.symbol in self.positions:
             self.positions[fill_event.symbol].transact_shares(fill_event)
-            if self.price_handler.istick():
-                market_price = self.price_handler.get_best_bid_ask(
-                    fill_event.symbol, exchange)
-                bid = market_price['Bid'].values[0]
-                ask = market_price['Ask'].values[0]
-            else:
-                close_price = self.price_handler.get_last_close(
-                    fill_event.symbol, exchange)
-                bid = close_price
-                ask = close_price            
-            self.positions[fill_event.symbol].update_market_value(bid, ask)
+            try:                
+                if self.price_handler.istick():
+                    market_price = self.price_handler.get_best_bid_ask(
+                        fill_event.symbol, exchange)                
+                    bid = market_price['Bid'].values[0]
+                    ask = market_price['Ask'].values[0]
+                else:
+                    close_price = self.price_handler.get_last_close(
+                        fill_event.symbol, exchange)
+                    bid = close_price
+                    ask = close_price            
+                self.positions[fill_event.symbol].update_market_value(bid, ask)
+            
+                if self.positions[fill_event.symbol].volume == 0:
+                    closed = self.positions.pop(fill_event.symbol)
+                    self.realised_pnl += closed.realised_pnl
+                    self.closed_positions.append(closed)
 
-            if self.positions[fill_event.symbol].volume == 0:
-                closed = self.positions.pop(fill_event.symbol)
-                self.realised_pnl += closed.realised_pnl
-                self.closed_positions.append(closed)
-
-            self._update_portfolio()
+                self._update_portfolio()
+            except IndexError:
+                print("Market Price for ticker %s is not available." % fill_event.symbol)
         else:
             print(
                 "Ticker %s not in the current position list. "
