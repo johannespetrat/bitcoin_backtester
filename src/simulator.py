@@ -13,7 +13,7 @@ class Simulator(object):
 
     def run(self):
         all_executed_orders = []
-        for bar in self.dataStream._data_streamer():   
+        for bar in self.dataStream._data_streamer():           
             print bar['Datetime'] 
             #if bar['Datetime'].month<8 and bar['Datetime'].month>1:
             #    break
@@ -29,7 +29,7 @@ class Simulator(object):
             self.portfolio.update(executed_orders)
             #from nose.tools import set_trace; set_trace()
             self.pnls[bar['Datetime']] = {'realised': self.portfolio.realised_pnl,
-                                          'unrealised': sum(self.portfolio.unrealised_pnl)}
+                                          'unrealised': self.portfolio.unrealised_pnl}
         self.executed_orders = all_executed_orders
         return executed_orders
 

@@ -29,7 +29,7 @@ if __name__ == "__main__":
     """
     coinbase_client = Client(api_key = API_KEY, 
                                 api_secret = API_SECRET,
-                                base_api_uri='https://api.sandbox.coinbase.com/')
+                                base_api_uri='https://api.coinbase.com/')
     account_id = coinbase_client.get_accounts()['data'][0]['id']
     dataStream = CoinbaseSandboxStream(global_event_queue, update_rate = 1, client = coinbase_client)
 
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     fill_event = broker.execute_order(testOrder)
     strategy = TestStrategy(global_event_queue)
     portfolio = TestPortfolio(broker, 100)
-    signals = SignalCollector({"Moving Average": MovingAverage(lookback_period = datetime.timedelta(days=2))})
+    signals = SignalCollector({"Moving Average": MovingAverage(lookback_period = datetime.timedelta(days=3))})
     simulator = Simulator(dataStream, broker, strategy, portfolio, signals)
 
     simulator.run()

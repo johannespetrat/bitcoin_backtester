@@ -43,10 +43,12 @@ class BacktestingBroker(BasicBroker):
 
     def get_market_price(self, exchange, side):
         data = self.dataStream.get_latest_bars(N=10)
+        assert(side=='B' or side=='S'), "side must be 'S' or 'B'"
         if side=='B':
             return data['Ask'].values[-1]
-        else:
-            return data[['Bid']].values[-1]
+        elif side=='S':
+            return data[['Bid']].values[-1]        
+
 
     def _market_order(self, order):
         """
@@ -67,17 +69,17 @@ class BacktestingBroker(BasicBroker):
         """
         volume = order.volume        
         market_price = self.get_market_price(order.exchange, order.side)
-        fill_cost = volume * market_price
+        fill_cost = volume * order.price
         if order.side=='B' and order.price>=market_price:
             fill_event = FillEvent(timeindex=order.posted_at, symbol='BTC', exchange='TestExchange',
                                    volume=volume, side=order.side, fill_cost=fill_cost,
-                                   commission=volume * self.commission, price=min([order.price,market_price]))        
+                                   commission=volume * self.commission, price=order.price)
             self.event_queue.put(fill_event)
             return fill_event
         elif order.side=='S' and order.price<=market_price:
             fill_event = FillEvent(timeindex=order.posted_at, symbol='BTC', exchange='TestExchange',
                                    volume=volume, side=order.side, fill_cost=fill_cost,
-                                   commission=volume * self.commission, price=max([order.price,market_price]))        
+                                   commission=volume * self.commission, price=order.price)
             self.event_queue.put(fill_event)
             return fill_event
 

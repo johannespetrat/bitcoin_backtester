@@ -1,3 +1,4 @@
+import copy
 from position import Position
 
 class Portfolio(object):
@@ -77,8 +78,26 @@ class Portfolio(object):
         else:
             print(
                 "Ticker %s is already in the positions list. "
-                "Could not add a new position." % ticker
+                "Could not add a new position." % fill_event.symbol
             )
+
+    def _get_closed_and_diff(self, fill_event):
+        """ 
+        gets called if the volume of a fill event closes the active position
+        and converts from buy-side to sell-side (or reversed)
+        """        
+        diff_fill_event = copy.deepcopy(fill_event)
+        closed_fill_event = copy.deepcopy(fill_event)
+        closed_volume = self.positions[fill_event.symbol].volume
+        diff_volume = fill_event.volume - self.positions[fill_event.symbol].volume
+        diff_fill_event.fill_cost = fill_event.fill_cost / float(fill_event.volume) * diff_volume
+        closed_fill_event.fill_cost = fill_event.fill_cost / float(fill_event.volume) * closed_volume
+        closed_fill_event.volume = closed_volume
+        diff_fill_event.volume = diff_volume
+        assert(diff_fill_event.volume>0), 'got a negative volume: {}'.format(diff_fill_event.volume)
+        assert(closed_fill_event.volume>0), 'got a negative volume: {}'.format(closed_fill_event.volume)        
+        return closed_fill_event, diff_fill_event
+
 
     def _modify_position(self, fill_event):
         """
@@ -88,10 +107,17 @@ class Portfolio(object):
         "market value".
         Once the Position is modified, the Portfolio values
         are updated.
-        """
+        """             
         exchange = 'TestExchange'
         if fill_event.symbol in self.positions:
-            self.positions[fill_event.symbol].transact_shares(fill_event)
+            if (self.positions[fill_event.symbol].volume < fill_event.volume) and (
+                self.positions[fill_event.symbol].side != fill_event.side):
+                fill_event, diff_fill_event = self._get_closed_and_diff(fill_event)
+                self.positions[fill_event.symbol].transact_shares(fill_event)
+                SURPLUS_FLAG = True                
+            else:                
+                self.positions[fill_event.symbol].transact_shares(fill_event)
+                SURPLUS_FLAG = False
             try:                
                 if self.price_handler.istick():
                     market_price = self.price_handler.get_best_bid_ask(
@@ -106,9 +132,13 @@ class Portfolio(object):
                 self.positions[fill_event.symbol].update_market_value(bid, ask)
             
                 if self.positions[fill_event.symbol].volume == 0:
-                    closed = self.positions.pop(fill_event.symbol)
+                    closed = self.positions.pop(fill_event.symbol)                    
                     self.realised_pnl += closed.realised_pnl
-                    self.closed_positions.append(closed)
+                    self.closed_positions.append(closed)                
+
+                if SURPLUS_FLAG:                    
+                    self._add_position(diff_fill_event)
+                    self.positions[diff_fill_event.symbol].update_market_value(bid, ask)
 
                 self._update_portfolio()
             except IndexError:
