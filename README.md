@@ -1,6 +1,6 @@
 # Backtester for Cryptocurrency Trading
 
-One day this will become a testing platform for trading strategies for a variety of cryptocurrencies (Bitcoin, Ether, etc.). 
+One day this will become a testing platform for trading strategies for a variety of cryptocurrencies (Bitcoin, Ethereum, etc.). 
 
 ## Project TODOs
 1. add possibility to trade on several exchanges
